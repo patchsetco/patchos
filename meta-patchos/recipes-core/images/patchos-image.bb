@@ -5,14 +5,11 @@ LICENSE = "MIT"
 inherit core-image
 
 IMAGE_INSTALL:append = " \
-    systemd \
     systemd-networkd \
-    util-linux \
     iproute2 \
     iputils \
     procps \
+    util-linux \
 "
-
-IMAGE_FEATURES += "allow-empty-password allow-root-login empty-root-password post-install-logging tools-debug"
 
 IMAGE_LINGUAS = "en-us"
