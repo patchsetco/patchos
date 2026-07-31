@@ -1,0 +1,21 @@
+# bitbake-setup tool
+/tools/bitbake/
+
+# bitbake-setup generated workspaces
+/patchos-wrynose/
+/bitbake-builds/
+
+# yocto build output + caches
+/build/
+/downloads/
+/sstate-cache/
+/tmp/
+/cache/
+/workspace/
+/buildhistory/
+
+# generated files
+*.log
+*.pyc
+__pycache__/
+
