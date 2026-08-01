@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+TOP_DIR="${REPO_ROOT}/bitbake-builds"
+BOOTSTRAP_DIR="${TOP_DIR}/.bootstrap/bitbake-yocto-6.0"
+BITBAKE_SETUP="${BOOTSTRAP_DIR}/bin/bitbake-setup"
+CONFIG="${REPO_ROOT}/setup/patchos-wrynose.conf.json"
+SETUP_DIR="${TOP_DIR}/patchos-wrynose"
+BITBAKE_URI="https://git.openembedded.org/bitbake"
+BITBAKE_REV="33581c84f3a85008239acbd940501a35de48dc91"
+
+command -v git >/dev/null || {
+    echo "error: Git is required" >&2
+    echo "Install Git, then run ./scripts/setup again." >&2
+    exit 1
+}
+
+command -v python3 >/dev/null || {
+    echo "error: Python 3 is required" >&2
+    echo "Install Python 3, then run ./scripts/setup again." >&2
+    exit 1
+}
+
+if [[ -e "${SETUP_DIR}" ]]; then
+    if [[ -f "${SETUP_DIR}/build/init-build-env" ]] &&
+        [[ -f "${SETUP_DIR}/config/config-upstream.json" ]] &&
+        grep -Fq '"name": "patchos"' \
+            "${SETUP_DIR}/config/config-upstream.json"; then
+        echo "PatchOS setup already exists: ${SETUP_DIR}"
+        exit 0
+    fi
+
+    echo "error: ${SETUP_DIR} is not a PatchOS Wrynose setup" >&2
+    echo "Move that directory, then run ./scripts/setup again." >&2
+    exit 1
+fi
+
+mkdir -p "${TOP_DIR}/.bootstrap"
+
+if [[ ! -e "${BOOTSTRAP_DIR}" ]]; then
+    git clone --depth 1 --branch yocto-6.0 "${BITBAKE_URI}" "${BOOTSTRAP_DIR}"
+fi
+
+if [[ ! -x "${BITBAKE_SETUP}" ]]; then
+    echo "error: BitBake setup is incomplete: ${BOOTSTRAP_DIR}" >&2
+    echo "Repair or remove that checkout, then run ./scripts/setup again." >&2
+    exit 1
+fi
+
+actual_rev="$(git -C "${BOOTSTRAP_DIR}" rev-parse HEAD)"
+if [[ "${actual_rev}" != "${BITBAKE_REV}" ]]; then
+    echo "error: BitBake revision does not match the pinned version" >&2
+    echo "expected: ${BITBAKE_REV}" >&2
+    echo "actual:   ${actual_rev}" >&2
+    echo "Remove the bootstrap checkout, then run ./scripts/setup again." >&2
+    exit 1
+fi
+
+"${BITBAKE_SETUP}" \
+    --setting default top-dir-prefix "${REPO_ROOT}" \
+    --setting default top-dir-name bitbake-builds \
+    init \
+    --non-interactive \
+    --no-init-vscode \
+    --setup-dir-name patchos-wrynose \
+    "${CONFIG}" \
+    patchos
+
+echo "PatchOS setup is ready: ${SETUP_DIR}"

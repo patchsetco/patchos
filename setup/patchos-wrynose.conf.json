@@ -1,0 +1,39 @@
+{
+    "description": "Build PatchOS with Yocto Project 6.0 Wrynose",
+    "sources": {
+        "bitbake": {
+            "git-remote": {
+                "uri": "https://git.openembedded.org/bitbake",
+                "branch": "2.18",
+                "rev": "33581c84f3a85008239acbd940501a35de48dc91"
+            }
+        },
+        "openembedded-core": {
+            "git-remote": {
+                "uri": "https://git.openembedded.org/openembedded-core",
+                "branch": "wrynose",
+                "rev": "42fa856a00ac16b2a7a83d7ecfa60a5be192b16c"
+            }
+        }
+    },
+    "bitbake-setup": {
+        "configurations": [
+            {
+                "name": "patchos",
+                "description": "Build PatchOS for qemux86-64",
+                "setup-dir-name": "patchos-wrynose",
+                "bb-layers": [
+                    "openembedded-core/meta"
+                ],
+                "bb-layers-file-relative": [
+                    "../meta-patchos"
+                ],
+                "oe-fragments": [
+                    "machine/qemux86-64",
+                    "meta-patchos/distro/patchos"
+                ]
+            }
+        ]
+    },
+    "version": "1.0"
+}

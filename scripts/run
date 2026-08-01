@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+ENV_SCRIPT="${REPO_ROOT}/bitbake-builds/patchos-wrynose/build/init-build-env"
+
+if [[ ! -f "${ENV_SCRIPT}" ]]; then
+    echo "error: PatchOS is not set up" >&2
+    echo "Run ./scripts/setup first." >&2
+    exit 1
+fi
+
+# shellcheck disable=SC1090
+set +u
+source "${ENV_SCRIPT}"
+set -u
+exec runqemu patchos-image snapshot nographic
