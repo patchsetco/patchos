@@ -35,4 +35,6 @@ runqemu patchos-image snapshot nographic
 
 ## License
 
-PatchOS is open-source software. Licensing information will be added as the project develops.
+PatchOS is open-source software licensed under the MIT License. See [LICENSE](LICENSE).
+
+Third-party components retain their original licenses.

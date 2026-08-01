@@ -2,15 +2,15 @@
 
 This layer contains the OpenEmbedded metadata used to build PatchOS.
 
-# Compatibility
+## Compatibility
 
 Yocto Project 6.0 Wrynose
 
-# Dependencies
+## Dependencies
 
 * OpenEmbedded-Core
 
-# Configuration
+## Configuration
 
 Add this layer to the build:
 
@@ -30,6 +30,12 @@ Build the PatchOS image:
 bitbake patchos-image
 ```
 
-# Maintainer
+## License
+
+PatchOS layer metadata is licensed under the MIT License. See [COPYING.MIT](COPYING.MIT).
+
+Upstream OpenEmbedded components retain their original licenses.
+
+## Maintainer
 
 Patchset Company
