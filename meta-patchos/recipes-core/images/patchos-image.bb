@@ -5,6 +5,7 @@ LICENSE = "MIT"
 inherit core-image
 
 IMAGE_INSTALL:append = " \
+    patchos-config \
     systemd-networkd \
     iproute2 \
     iputils \
