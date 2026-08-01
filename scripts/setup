@@ -39,7 +39,9 @@ fi
 mkdir -p "${TOP_DIR}/.bootstrap"
 
 if [[ ! -e "${BOOTSTRAP_DIR}" ]]; then
-    git clone --depth 1 --branch yocto-6.0 "${BITBAKE_URI}" "${BOOTSTRAP_DIR}"
+    git clone --single-branch --branch yocto-6.0 \
+        "${BITBAKE_URI}" "${BOOTSTRAP_DIR}"
+    git -C "${BOOTSTRAP_DIR}" checkout --detach "${BITBAKE_REV}"
 fi
 
 if [[ ! -x "${BITBAKE_SETUP}" ]]; then
