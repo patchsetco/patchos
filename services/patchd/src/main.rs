@@ -1,23 +1,33 @@
 mod device;
+mod socket;
 mod status;
 
 use std::env;
 use std::io;
 use std::path::Path;
 use std::process;
-use std::thread;
 
 use status::{SystemStatus, PATCHD_VERSION};
 
 const STATE_DIRECTORY: &str = "/var/lib/patchd";
+const SOCKET_PATH: &str = "/run/patchd/patchd.sock";
 
 fn main() {
-    if env::args().nth(1).as_deref() == Some("--version") {
-        println!("patchd {PATCHD_VERSION}");
-        return;
-    }
+    let result = match env::args().nth(1).as_deref() {
+        None => run(),
+        Some("--version") => {
+            println!("patchd {PATCHD_VERSION}");
+            Ok(())
+        }
+        Some("status") => socket::request_status(Path::new(SOCKET_PATH)),
+        Some(argument) => {
+            eprintln!("patchd: unknown command: {argument}");
+            eprintln!("usage: patchd [--version|status]");
+            process::exit(2);
+        }
+    };
 
-    if let Err(error) = run() {
+    if let Err(error) = result {
         eprintln!("patchd: {error}");
         process::exit(1);
     }
@@ -43,7 +53,5 @@ fn run() -> io::Result<()> {
         None => println!("memory_total_bytes=unknown"),
     }
 
-    loop {
-        thread::park();
-    }
+    socket::serve_status_socket(Path::new(SOCKET_PATH), &status.device_id)
 }
