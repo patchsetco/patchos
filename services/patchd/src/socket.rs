@@ -27,7 +27,6 @@ pub fn serve_status_socket(socket_path: &Path, device_id: &str) -> io::Result<()
 
     println!("socket={}", socket_path.display());
 
-    // ponytail: serve clients serially; add workers when concurrent control traffic exists.
     for connection in listener.incoming() {
         match connection {
             Ok(stream) => {
