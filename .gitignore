@@ -18,4 +18,4 @@
 *.log
 *.pyc
 __pycache__/
-
+/services/*/target/
