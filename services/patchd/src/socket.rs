@@ -31,13 +31,10 @@ pub fn serve_status_socket(socket_path: &Path, device_id: &str) -> io::Result<()
     println!("socket={}", socket_path.display());
 
     for connection in listener.incoming() {
-        match connection {
-            Ok(stream) => {
-                if let Err(error) = handle_status_client(stream, device_id) {
-                    eprintln!("patchd: client error: {error}");
-                }
-            }
-            Err(error) => return Err(error),
+        let stream = connection?;
+
+        if let Err(error) = handle_status_client(stream, device_id) {
+            eprintln!("patchd: client error: {error}");
         }
     }
 
