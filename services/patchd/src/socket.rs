@@ -12,6 +12,9 @@ const PROTOCOL_VERSION: u8 = 1;
 pub fn request_status(socket_path: &Path) -> io::Result<()> {
     let mut stream = UnixStream::connect(socket_path)?;
 
+    stream.set_read_timeout(Some(Duration::from_secs(2)))?;
+    stream.set_write_timeout(Some(Duration::from_secs(2)))?;
+
     stream.write_all(b"status\n")?;
     stream.shutdown(Shutdown::Write)?;
 
