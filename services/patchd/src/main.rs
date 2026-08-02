@@ -16,8 +16,10 @@ fn main() {
     println!("hostname={}", read_hostname());
     println!("uptime_seconds={}", read_uptime_seconds());
     println!("memory_total_bytes={}", read_memory_total_bytes());
-
-    thread::park();
+    
+    loop {
+        thread::park();
+    }
 }
 
 fn read_os_version() -> String {
