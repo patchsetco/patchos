@@ -4,6 +4,8 @@ Description=PatchOS controller
 [Service]
 Type=simple
 ExecStart=/usr/bin/patchd
+StateDirectory=patchd
+RuntimeDirectory=patchd
 Restart=on-failure
 RestartSec=2s
 StandardOutput=journal

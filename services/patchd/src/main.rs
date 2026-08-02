@@ -1,84 +1,57 @@
-use std::env;
-use std::fs;
-use std::thread;
+mod device;
+mod socket;
+mod status;
 
-const VERSION: &str = "0.1.0";
+use std::env;
+use std::io;
+use std::path::Path;
+use std::process;
+
+use status::{SystemStatus, PATCHD_VERSION};
+
+const STATE_DIRECTORY: &str = "/var/lib/patchd";
+const SOCKET_PATH: &str = "/run/patchd/patchd.sock";
 
 fn main() {
-    if env::args().nth(1).as_deref() == Some("--version") {
-        println!("patchd {VERSION}");
-        return;
+    let result = match env::args().nth(1).as_deref() {
+        None => run(),
+        Some("--version") => {
+            println!("patchd {PATCHD_VERSION}");
+            Ok(())
+        }
+        Some("status") => socket::request_status(Path::new(SOCKET_PATH)),
+        Some(argument) => {
+            eprintln!("patchd: unknown command: {argument}");
+            eprintln!("usage: patchd [--version|status]");
+            process::exit(2);
+        }
+    };
+
+    if let Err(error) = result {
+        eprintln!("patchd: {error}");
+        process::exit(1);
     }
+}
+
+fn run() -> io::Result<()> {
+    let device_id = device::load_or_create_device_id(Path::new(STATE_DIRECTORY))?;
+    let status = SystemStatus::collect(device_id)?;
 
     println!("PatchOS controller starting");
-    println!("version={VERSION}");
-    println!("os_version={}", read_os_version());
-    println!("hostname={}", read_hostname());
-    println!("uptime_seconds={}", read_uptime_seconds());
-    println!("memory_total_bytes={}", read_memory_total_bytes());
-    
-    loop {
-        thread::park();
-    }
-}
+    println!("version={}", status.patchd_version);
+    println!("device_id={}", status.device_id);
+    println!("os_version={}", status.os_version);
+    println!("hostname={}", status.hostname);
 
-fn read_os_version() -> String {
-    let contents = fs::read_to_string("/etc/os-release").unwrap_or_default();
-
-    for key in ["VERSION_ID", "VERSION"] {
-        if let Some(value) = read_os_release_value(&contents, key) {
-            return value;
-        }
+    match status.uptime_seconds {
+        Some(value) => println!("uptime_seconds={value}"),
+        None => println!("uptime_seconds=unknown"),
     }
 
-    "unknown".to_string()
-}
+    match status.memory_total_bytes {
+        Some(value) => println!("memory_total_bytes={value}"),
+        None => println!("memory_total_bytes=unknown"),
+    }
 
-fn read_os_release_value(contents: &str, key: &str) -> Option<String> {
-    contents.lines().find_map(|line| {
-        let (name, value) = line.split_once('=')?;
-        if name != key {
-            return None;
-        }
-
-        Some(value.trim_matches(['"', '\'']).to_string())
-    })
-}
-
-fn read_hostname() -> String {
-    fs::read_to_string("/etc/hostname")
-        .map(|value| value.trim().to_string())
-        .ok()
-        .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| "unknown".to_string())
-}
-
-fn read_uptime_seconds() -> String {
-    fs::read_to_string("/proc/uptime")
-        .ok()
-        .and_then(|contents| contents.split_whitespace().next()?.parse::<f64>().ok())
-        .map(|seconds| (seconds as u64).to_string())
-        .unwrap_or_else(|| "unknown".to_string())
-}
-
-fn read_memory_total_bytes() -> String {
-    fs::read_to_string("/proc/meminfo")
-        .ok()
-        .and_then(|contents| {
-            contents.lines().find_map(|line| {
-                let (name, value) = line.split_once(':')?;
-                if name != "MemTotal" {
-                    return None;
-                }
-
-                value
-                    .split_whitespace()
-                    .next()?
-                    .parse::<u64>()
-                    .ok()?
-                    .checked_mul(1024)
-            })
-        })
-        .map(|bytes| bytes.to_string())
-        .unwrap_or_else(|| "unknown".to_string())
+    socket::serve_status_socket(Path::new(SOCKET_PATH), &status.device_id)
 }
