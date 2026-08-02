@@ -6,6 +6,7 @@ inherit core-image
 
 IMAGE_INSTALL:append = " \
     patchos-config \
+    patchd \
     systemd-networkd \
     iproute2 \
     iputils \
