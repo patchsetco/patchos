@@ -10,7 +10,9 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/../../../services/patchd:"
 SRC_URI = " \
     file://Cargo.toml \
     file://Cargo.lock \
+    file://src/device.rs \
     file://src/main.rs \
+    file://src/status.rs \
     file://patchd.service \
 "
 
