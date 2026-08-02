@@ -1,0 +1,44 @@
+name: Rust
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "services/patchd/**"
+      - ".github/workflows/rust.yml"
+
+  pull_request:
+    paths:
+      - "services/patchd/**"
+      - ".github/workflows/rust.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check patchd
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: services/patchd
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Run tests
+        run: cargo test --locked
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
